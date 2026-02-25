@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+*.csv
+*.parquet
+
+# IDE
+.vscode/
+.idea/
+
+# Mac
+.DS_Store
