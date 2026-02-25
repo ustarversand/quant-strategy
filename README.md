@@ -7,6 +7,9 @@
 - 铜陵有色 (000630.SZ) - 铜
 - 英维克 (002837.SZ) - 温控
 
+## 自选股票
+- 比亚迪 (002594.SZ) - 新能源车
+
 ## 研究方向
 1. **均线策略 (Moving Average)** - SMA, EMA 交叉策略
 2. **动量策略 (Momentum)** - RSI, MACD, 动量反转
@@ -20,10 +23,10 @@ quant-strategy/
 │   ├── moving_average/   # 均线策略
 │   ├── momentum/         # 动量策略
 │   ├── arbitrage/        # 套利策略
-│   └── macro/            # 宏观策略
+│   └── macro/           # 宏观策略
 ├── data/                 # 数据存储
 ├── notebooks/            # 研究笔记
-├── tests/                # 回测测试
+├── tests/               # 回测测试
 └── docs/                 # 文档
 ```
 
