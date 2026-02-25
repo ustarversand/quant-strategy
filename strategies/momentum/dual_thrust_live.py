@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Dual Thrust 实盘信号
-每日运行，获取今日交易信号
+Dual Thrust 实盘信号 - 每日运行版
 """
 
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import sys
 
 STOCKS = {
     '紫金矿业': '601899.SS',
@@ -18,58 +18,53 @@ STOCKS = {
     '剑桥科技': '603083.SS',
 }
 
-def dual_thrust_signal(ticker, k1=0.5, k2=0.5):
-    """获取Dual Thrust信号"""
-    # 获取最近22天数据
-    df = yf.Ticker(ticker).history(period='1mo')
+def get_signal(name, ticker):
+    try:
+        # 使用3个月数据确保足够
+        df = yf.Ticker(ticker).history(period='3mo')
+        
+        if len(df) < 25:
+            return f"{name}: 数据不足 ({len(df)}天)"
+        
+        # 取最近22个交易日
+        recent = df.iloc[:-1].tail(22)
+        yesterday = df.iloc[-2]
+        
+        HH = recent['High'].max()
+        LC = recent['Low'].min()
+        Range = max(HH - yesterday['Close'], yesterday['Close'] - LC)
+        
+        Upper = yesterday['Open'] + 0.5 * Range
+        Lower = yesterday['Open'] - 0.5 * Range
+        
+        # 今日
+        today_close = df.iloc[-1]['Close']
+        
+        signal = "持有"
+        if today_close > Upper:
+            signal = "BUY"
+        elif today_close < Lower:
+            signal = "SELL"
+        
+        return f"{name}: {signal} (当前:{today_close:.2f} 区间:{Lower:.2f}-{Upper:.2f})"
     
-    if len(df) < 20:
-        return None, None, None
-    
-    # 昨天数据
-    yesterday = df.iloc[-2]
-    today = df.iloc[-1]
-    
-    HH = df['High'].iloc[-22:-1].max()   # 20日最高
-    LC = df['Low'].iloc[-22:-1].min()    # 20日最低
-    HC = df['Close'].iloc[-22:-1].max()  # 20日收盘最高
-    
-    # Range
-    Range = max(HH - yesterday['Close'], yesterday['Close'] - LC)
-    
-    # 上下轨
-    Upper = yesterday['Open'] + k1 * Range
-    Lower = yesterday['Open'] - k2 * Range
-    
-    # 今日价格
-    current = today['Close']
-    high = today['High']
-    low = today['Low']
-    
-    # 信号
-    signal = 'hold'
-    if high > Upper:
-        signal = 'BUY (突破上轨)'
-    elif low < Lower:
-        signal = 'SELL (跌破下轨)'
-    
-    return signal, Upper, Lower
+    except Exception as e:
+        return f"{name}: 错误 - {e}"
 
 def main():
     print("="*60)
-    print(f"Dual Thrust 信号 - {datetime.now().strftime('%Y-%m-%d')}")
+    print(f"Dual Thrust 信号 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("="*60)
     
+    signals = []
     for name, ticker in STOCKS.items():
-        signal, upper, lower = dual_thrust_signal(ticker)
-        
-        if signal:
-            print(f"\n{name} ({ticker}):")
-            print(f"  上轨: {upper:.2f}")
-            print(f"  下轨: {lower:.2f}")
-            print(f"  信号: {signal}")
-        else:
-            print(f"{name}: 数据不足")
+        signal = get_signal(name, ticker)
+        print(signal)
+        signals.append(signal)
+    
+    # 保存到文件
+    with open('/Users/ustar/quant-strategy/logs/latest_signal.txt', 'w') as f:
+        f.write('\n'.join(signals))
 
 if __name__ == "__main__":
     main()
